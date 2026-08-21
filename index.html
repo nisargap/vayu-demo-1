@@ -89,6 +89,29 @@ body {
 	text-align: center;
 	z-index: 1;
 }
+
+#start-button {
+	position: absolute;
+	left: 50%;
+	top: 68%;
+	transform: translateX(-50%);
+	padding: 1rem 2.5rem;
+	font: 700 20px sans-serif;
+	letter-spacing: 0.12em;
+	color: #f3c76c;
+	background: rgba(19, 13, 27, 0.85);
+	border: 2px solid #f3c76c;
+	border-radius: 0.75rem;
+	cursor: pointer;
+	z-index: 2;
+	-webkit-tap-highlight-color: transparent;
+	touch-action: manipulation;
+}
+
+#start-button:active {
+	background: #f3c76c;
+	color: #130d1b;
+}
 		</style>
 		<link id="-gd-engine-icon" rel="icon" type="image/png" href="index.icon.png" />
 <link rel="apple-touch-icon" href="index.apple-touch-icon.png"/>
@@ -107,6 +130,7 @@ body {
 			<img id="status-splash" class="show-image--true fullsize--true use-filter--true" src="index.png" alt="">
 			<progress id="status-progress"></progress>
 			<div id="status-notice"></div>
+			<button id="start-button" type="button">TAP TO START</button>
 		</div>
 
 		<script src="index.js"></script>
@@ -119,6 +143,7 @@ const engine = new Engine(GODOT_CONFIG);
 	const statusOverlay = document.getElementById('status');
 	const statusProgress = document.getElementById('status-progress');
 	const statusNotice = document.getElementById('status-notice');
+	const startButton = document.getElementById('start-button');
 
 	let initializing = true;
 	let statusMode = '';
@@ -135,6 +160,7 @@ const engine = new Engine(GODOT_CONFIG);
 		statusOverlay.style.visibility = 'visible';
 		statusProgress.style.display = mode === 'progress' ? 'block' : 'none';
 		statusNotice.style.display = mode === 'notice' ? 'block' : 'none';
+		startButton.style.display = mode === 'start' ? 'block' : 'none';
 		statusMode = mode;
 	}
 
@@ -160,6 +186,23 @@ const engine = new Engine(GODOT_CONFIG);
 		}
 		setStatusMode('notice');
 		initializing = false;
+	}
+
+	function startGame() {
+		setStatusMode('progress');
+		engine.startGame({
+			'onProgress': function (current, total) {
+				if (current > 0 && total > 0) {
+					statusProgress.value = current;
+					statusProgress.max = total;
+				} else {
+					statusProgress.removeAttribute('value');
+					statusProgress.removeAttribute('max');
+				}
+			},
+		}).then(() => {
+			setStatusMode('hidden');
+		}, displayFailureNotice);
 	}
 
 	const missing = Engine.getMissingFeatures({
@@ -198,20 +241,11 @@ const engine = new Engine(GODOT_CONFIG);
 			displayFailureNotice(missingMsg + missing.join('\n'));
 		}
 	} else {
-		setStatusMode('progress');
-		engine.startGame({
-			'onProgress': function (current, total) {
-				if (current > 0 && total > 0) {
-					statusProgress.value = current;
-					statusProgress.max = total;
-				} else {
-					statusProgress.removeAttribute('value');
-					statusProgress.removeAttribute('max');
-				}
-			},
-		}).then(() => {
-			setStatusMode('hidden');
-		}, displayFailureNotice);
+		// Wait for an explicit tap/click so the browser's AudioContext is created
+		// inside a user gesture. Mobile browsers (Safari/Chrome) keep audio
+		// suspended otherwise and the game stays silent.
+		setStatusMode('start');
+		startButton.addEventListener('click', startGame, { once: true });
 	}
 }());
 		</script>
