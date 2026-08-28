@@ -26,96 +26,234 @@ body {
 	outline: none;
 }
 
-#status, #status-splash, #status-progress {
-	position: absolute;
-	left: 0;
-	right: 0;
-}
-
-#status, #status-splash {
-	top: 0;
-	bottom: 0;
-}
+/* ---------------------------------------------------------------
+   Branded loader — replaces Godot's default status/progress overlay.
+   Mythic night gradient, a breathing wind emblem, drifting motes and a
+   gradient progress bar. No tap-to-start gate: the game boots immediately.
+   --------------------------------------------------------------- */
 
 #status {
-	background-color: #08050b;
+	position: fixed;
+	inset: 0;
+	z-index: 3;
 	display: flex;
 	flex-direction: column;
-	justify-content: center;
 	align-items: center;
-	visibility: hidden;
-}
-
-#status-splash {
-	max-height: 100%;
-	max-width: 100%;
-	margin: auto;
-}
-
-#status-splash.show-image--false {
-	display: none;
-}
-
-#status-splash.fullsize--true {
-	height: 100%;
-	width: 100%;
-	object-fit: contain;
-}
-
-#status-splash.use-filter--false {
-	image-rendering: pixelated;
-}
-
-#status-progress, #status-notice {
-	display: none;
-}
-
-#status-progress {
-	bottom: 10%;
-	width: 50%;
-	margin: 0 auto;
-}
-
-#status-notice {
-	background-color: #5b3943;
-	border-radius: 0.5rem;
-	border: 1px solid #9b3943;
-	color: #e0e0e0;
-	font-family: 'Noto Sans', 'Droid Sans', Arial, sans-serif;
-	line-height: 1.3;
-	margin: 0 2rem;
+	justify-content: center;
 	overflow: hidden;
-	padding: 1rem;
-	text-align: center;
-	z-index: 1;
+	background:
+		radial-gradient(120% 90% at 50% 12%, rgba(87, 230, 255, 0.10) 0%, rgba(87, 230, 255, 0) 42%),
+		radial-gradient(140% 120% at 50% 108%, rgba(243, 199, 108, 0.08) 0%, rgba(243, 199, 108, 0) 48%),
+		radial-gradient(90% 100% at 50% 50%, #241430 0%, #150c20 55%, #0a0712 100%);
+	color: #e9e2f0;
+	transition: opacity 0.7s ease, visibility 0.7s ease;
 }
 
-#start-button {
+#status.done {
+	opacity: 0;
+	visibility: hidden;
+	pointer-events: none;
+}
+
+/* Rousing wind motes drifting upward */
+.mote {
 	position: absolute;
-	left: 50%;
-	top: 68%;
-	transform: translateX(-50%);
-	padding: 1rem 2.5rem;
-	font: 700 20px sans-serif;
-	letter-spacing: 0.12em;
-	color: #f3c76c;
-	background: rgba(19, 13, 27, 0.85);
-	border: 2px solid #f3c76c;
-	border-radius: 0.75rem;
-	cursor: pointer;
-	z-index: 2;
-	-webkit-tap-highlight-color: transparent;
-	touch-action: manipulation;
+	bottom: -6vh;
+	border-radius: 50%;
+	background: radial-gradient(circle, rgba(180, 238, 255, 0.95) 0%, rgba(87, 230, 255, 0) 70%);
+	opacity: 0;
+	animation-name: mote-rise;
+	animation-timing-function: ease-in-out;
+	animation-iteration-count: infinite;
+	will-change: transform, opacity;
 }
 
-#start-button:active {
-	background: #f3c76c;
-	color: #130d1b;
+@keyframes mote-rise {
+	0%   { transform: translate3d(0, 0, 0) scale(0.6); opacity: 0; }
+	12%  { opacity: var(--mote-o, 0.55); }
+	55%  { opacity: var(--mote-o, 0.55); }
+	88%  { opacity: 0; }
+	100% { transform: translate3d(var(--mote-x, 0px), -110vh, 0) scale(1.15); opacity: 0; }
+}
+
+.loader-inner {
+	position: relative;
+	z-index: 1;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	padding: 0 24px;
+	width: 100%;
+	max-width: 460px;
+	text-align: center;
+}
+
+/* Wind emblem: three glancing strokes curling inward over slow rings */
+.emblem {
+	position: relative;
+	width: 132px;
+	height: 132px;
+	margin-bottom: 30px;
+}
+
+.emblem svg {
+	position: absolute;
+	inset: 0;
+	width: 100%;
+	height: 100%;
+	animation: emblem-drift 7s ease-in-out infinite;
+	filter: drop-shadow(0 0 14px rgba(87, 230, 255, 0.35));
+}
+
+@keyframes emblem-drift {
+	0%, 100% { transform: rotate(-3deg) scale(1); }
+	50%      { transform: rotate(3deg) scale(1.05); }
+}
+
+.emblem .ring {
+	position: absolute;
+	border-radius: 50%;
+	pointer-events: none;
+}
+
+.emblem .ring-a {
+	inset: 2px;
+	border: 1px solid rgba(87, 230, 255, 0.22);
+	animation: ring-spin 16s linear infinite;
+}
+
+.emblem .ring-b {
+	inset: 17px;
+	border: 1px dashed rgba(243, 199, 108, 0.30);
+	animation: ring-spin-rev 23s linear infinite;
+}
+
+.emblem .sweep {
+	inset: 0;
+	background: conic-gradient(from 0deg,
+		rgba(87, 230, 255, 0)     0%,
+		rgba(87, 230, 255, 0)   300deg,
+		rgba(87, 230, 255, 0.55) 330deg,
+		rgba(243, 199, 108, 0.85) 348deg,
+		rgba(87, 230, 255, 0)   360deg);
+	-webkit-mask: radial-gradient(closest-side, transparent 78%, #000 100%);
+	        mask: radial-gradient(closest-side, transparent 78%, #000 100%);
+	animation: ring-spin 3.6s linear infinite;
+}
+
+.emblem .core {
+	inset: 47px;
+	border-radius: 50%;
+	background: radial-gradient(circle, rgba(243, 199, 108, 0.95) 0%, rgba(243, 199, 108, 0) 72%);
+	animation: core-breathe 2.6s ease-in-out infinite;
+}
+
+@keyframes ring-spin     { to { transform: rotate(360deg); } }
+@keyframes ring-spin-rev { to { transform: rotate(-360deg); } }
+
+@keyframes core-breathe {
+	0%, 100% { transform: scale(0.82); opacity: 0.55; }
+	50%      { transform: scale(1.18); opacity: 1; }
+}
+
+.loader-eyebrow {
+	font: 600 13px/1.4 "Trebuchet MS", Verdana, sans-serif;
+	letter-spacing: 0.42em;
+	text-transform: uppercase;
+	color: rgba(87, 230, 255, 0.85);
+	margin-bottom: 10px;
+}
+
+.loader-title {
+	font: 700 34px/1.1 Georgia, "Times New Roman", serif;
+	letter-spacing: 0.08em;
+	color: #f7e8c8;
+	text-shadow: 0 0 26px rgba(243, 199, 108, 0.35), 0 2px 0 rgba(0, 0, 0, 0.4);
+}
+
+.loader-subtitle {
+	margin-top: 12px;
+	font: 400 11px/1.6 "Trebuchet MS", Verdana, sans-serif;
+	letter-spacing: 0.30em;
+	text-transform: uppercase;
+	color: rgba(233, 226, 240, 0.55);
+}
+
+/* Progress track */
+.loader-track {
+	position: relative;
+	margin-top: 34px;
+	width: min(76vw, 360px);
+	height: 6px;
+	border-radius: 999px;
+	background: rgba(233, 226, 240, 0.10);
+	box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.55);
+	overflow: hidden;
+}
+
+.loader-fill {
+	height: 100%;
+	width: 0%;
+	border-radius: inherit;
+	background: linear-gradient(90deg, #47d8f5 0%, #8fe9ff 30%, #f3c76c 78%, #f7e8c8 100%);
+	box-shadow: 0 0 12px rgba(87, 230, 255, 0.55);
+	transition: width 0.35s ease;
+}
+
+#status.indeterminate .loader-fill {
+	width: 38% !important;
+	background: linear-gradient(90deg,
+		rgba(87, 230, 255, 0.25) 0%,
+		rgba(87, 230, 255, 0.25) 36%,
+		#8fe9ff 50%,
+		#f3c76c 64%,
+		rgba(243, 199, 108, 0.25) 72%,
+		rgba(87, 230, 255, 0.25) 100%);
+	background-size: 220% 100%;
+	animation: fill-sweep 1.6s ease-in-out infinite alternate;
+}
+
+@keyframes fill-sweep {
+	from { background-position: 0% 0; }
+	to   { background-position: 100% 0; }
+}
+
+.loader-meta {
+	margin-top: 14px;
+	font: 500 12px/1.4 "Trebuchet MS", Verdana, sans-serif;
+	letter-spacing: 0.22em;
+	text-transform: uppercase;
+	color: rgba(233, 226, 240, 0.68);
+	transition: opacity 0.3s ease;
+}
+
+.loader-meta.error {
+	color: #ff9d8a;
+	letter-spacing: 0.06em;
+	text-transform: none;
+	max-width: 66vw;
+}
+
+.notice-box {
+	display: none;
+	margin-top: 16px;
+	max-width: 66vw;
+	padding: 12px 18px;
+	border: 1px solid rgba(255, 157, 138, 0.45);
+	border-radius: 12px;
+	background: rgba(120, 40, 40, 0.28);
+	font: 400 13px/1.5 "Trebuchet MS", Verdana, sans-serif;
+	color: #ffd5cc;
+	text-align: center;
+}
+
+.notice-box.visible {
+	display: block;
 }
 		</style>
 		<link id="-gd-engine-icon" rel="icon" type="image/png" href="index.icon.png" />
 <link rel="apple-touch-icon" href="index.apple-touch-icon.png"/>
-<style>html,body{width:100%;height:100%;background:radial-gradient(circle at 50% 45%,#35203b 0,#130d1b 58%,#08070d 100%);}body{min-height:100dvh;}#canvas{width:100vw!important;height:100dvh!important;max-width:none!important;}#status{background:#130d1b!important;}@media (orientation:portrait){#canvas{position:absolute;left:0;top:50%;width:100vw!important;height:56.25vw!important;transform:translateY(-50%);}body:after{content:'ROTATE YOUR DEVICE TO PLAY';position:fixed;left:0;right:0;top:calc(50% + 31vw);z-index:2;color:#f3c76c;font:700 16px sans-serif;letter-spacing:.12em;text-align:center;text-shadow:0 2px 4px #000;pointer-events:none;}}</style>
+<style>html,body{width:100%;height:100%;background:radial-gradient(circle at 50% 45%,#35203b 0,#130d1b 58%,#08070d 100%);}body{min-height:100dvh;}#canvas{width:100vw!important;height:100dvh!important;max-width:none!important;}@media (orientation:portrait){#canvas{position:absolute;left:0;top:50%;width:100vw!important;height:56.25vw!important;transform:translateY(-50%);}body:after{content:'ROTATE YOUR DEVICE TO PLAY';position:fixed;left:0;right:0;top:calc(50% + 31vw);z-index:2;color:#f3c76c;font:700 16px sans-serif;letter-spacing:.12em;text-align:center;text-shadow:0 2px 4px #000;pointer-events:none;}}</style>
 	</head>
 	<body>
 		<canvas id="canvas">
@@ -127,87 +265,126 @@ body {
 		</noscript>
 
 		<div id="status">
-			<img id="status-splash" class="show-image--false fullsize--true use-filter--true" src="index.png" alt="">
-			<progress id="status-progress"></progress>
-			<div id="status-notice"></div>
-			<button id="start-button" type="button">TAP TO START</button>
+			<div class="loader-inner">
+				<div class="emblem">
+					<div class="ring ring-a"></div>
+					<div class="ring ring-b"></div>
+					<div class="sweep"></div>
+					<div class="core"></div>
+					<svg viewBox="0 0 120 120" aria-hidden="true">
+						<defs>
+							<linearGradient id="windStream" x1="0" y1="1" x2="1" y2="0">
+								<stop offset="0" stop-color="#57e6ff"/>
+								<stop offset="0.55" stop-color="#a9ecff"/>
+								<stop offset="1" stop-color="#f3c76c"/>
+							</linearGradient>
+						</defs>
+						<g fill="none" stroke="url(#windStream)" stroke-linecap="round">
+							<path d="M60 92 C 10 92 10 28 60 28 C 97 28 97 80 60 80"
+								stroke-width="3.4" stroke-dasharray="240 18" opacity="0.9"/>
+							<path d="M60 84 C 24 84 24 36 60 36 C 88 36 88 68 60 68"
+								stroke-width="2.4" stroke-dasharray="170 14" opacity="0.7"/>
+							<path d="M60 76 C 34 76 34 44 60 44 C 79 44 79 58 60 58"
+								stroke-width="1.5" stroke-dasharray="110 10" opacity="0.5"/>
+						</g>
+					</svg>
+				</div>
+
+				<div class="loader-eyebrow">Mythic Monkey Dash</div>
+				<div class="loader-title">THE WIND IS CALLING</div>
+				<div class="loader-subtitle">A vanara carries the last breath of Vayu</div>
+
+				<div class="loader-track">
+					<div class="loader-fill" id="loaderFill"></div>
+				</div>
+				<div class="loader-meta" id="loaderMeta">Calling the wind…</div>
+				<div class="notice-box" id="statusNotice"></div>
+			</div>
 		</div>
 
 		<script src="index.js"></script>
 		<script>
-const GODOT_CONFIG = {"args":[],"canvasResizePolicy":2,"emscriptenPoolSize":8,"ensureCrossOriginIsolationHeaders":true,"executable":"index","experimentalVK":false,"fileSizes":{"index.pck":37539116,"index.wasm":39513091},"focusCanvas":true,"gdextensionLibs":[],"godotPoolSize":4};
+const GODOT_CONFIG = {"args":[],"canvasResizePolicy":2,"emscriptenPoolSize":8,"ensureCrossOriginIsolationHeaders":true,"executable":"index","experimentalVK":false,"fileSizes":{"index.pck":37544112,"index.wasm":39513091},"focusCanvas":true,"gdextensionLibs":[],"godotPoolSize":4};
 const GODOT_THREADS_ENABLED = false;
 const engine = new Engine(GODOT_CONFIG);
 
 (function () {
-	const statusOverlay = document.getElementById('status');
-	const statusProgress = document.getElementById('status-progress');
-	const statusNotice = document.getElementById('status-notice');
-	const startButton = document.getElementById('start-button');
+	const statusEl = document.getElementById('status');
+	const loaderFill = document.getElementById('loaderFill');
+	const loaderMeta = document.getElementById('loaderMeta');
+	const statusNotice = document.getElementById('statusNotice');
+	let started = false;
 
-	let initializing = true;
-	let statusMode = '';
-
-	function setStatusMode(mode) {
-		if (statusMode === mode || !initializing) {
-			return;
+	function spawnMotes() {
+		const colors = [
+			'rgba(87, 230, 255,',  // wind cyan
+			'rgba(243, 199, 108,', // dusk gold
+			'rgba(210, 170, 255,'  // pale orchid
+		];
+		for (let i = 0; i < 9; i++) {
+			const mote = document.createElement('div');
+			mote.className = 'mote';
+			const size = 2 + Math.random() * 5;
+			mote.style.width = size + 'px';
+			mote.style.height = size + 'px';
+			mote.style.left = (6 + Math.random() * 88) + 'vw';
+			const bg = colors[i % colors.length] + ' 0.45)';
+			mote.style.background = 'radial-gradient(circle, ' + bg + ' 0%, transparent 70%)';
+			mote.style.setProperty('--mote-x', ((Math.random() - 0.5) * 24).toFixed(1) + 'vw');
+			mote.style.setProperty('--mote-o', (0.25 + Math.random() * 0.45).toFixed(2));
+			mote.style.animationDuration = (7 + Math.random() * 9).toFixed(1) + 's';
+			mote.style.animationDelay = (-Math.random() * 14).toFixed(1) + 's';
+			statusEl.appendChild(mote);
 		}
-		if (mode === 'hidden') {
-			statusOverlay.remove();
-			initializing = false;
-			return;
-		}
-		statusOverlay.style.visibility = 'visible';
-		statusProgress.style.display = mode === 'progress' ? 'block' : 'none';
-		statusNotice.style.display = mode === 'notice' ? 'block' : 'none';
-		startButton.style.display = mode === 'start' ? 'block' : 'none';
-		statusMode = mode;
-	}
-
-	function setStatusNotice(text) {
-		while (statusNotice.lastChild) {
-			statusNotice.removeChild(statusNotice.lastChild);
-		}
-		const lines = text.split('\n');
-		lines.forEach((line) => {
-			statusNotice.appendChild(document.createTextNode(line));
-			statusNotice.appendChild(document.createElement('br'));
-		});
 	}
 
 	function displayFailureNotice(err) {
 		console.error(err);
+		loaderMeta.classList.add('error');
 		if (err instanceof Error) {
-			setStatusNotice(err.message);
+			loaderMeta.textContent = err.message;
 		} else if (typeof err === 'string') {
-			setStatusNotice(err);
+			loaderMeta.textContent = err;
 		} else {
-			setStatusNotice('An unknown error occurred.');
+			loaderMeta.textContent = 'An unknown error occurred.';
 		}
-		setStatusMode('notice');
-		initializing = false;
+		statusNotice.classList.add('visible');
+		statusEl.classList.remove('indeterminate');
 	}
 
 	function startGame() {
-		setStatusMode('progress');
+		if (started) {
+			return;
+		}
+		started = true;
+		statusEl.classList.add('loading');
 		engine.startGame({
 			'onProgress': function (current, total) {
 				if (current > 0 && total > 0) {
-					statusProgress.value = current;
-					statusProgress.max = total;
-				} else {
-					statusProgress.removeAttribute('value');
-					statusProgress.removeAttribute('max');
+					statusEl.classList.remove('indeterminate');
+					const pct = Math.round((current / total) * 100);
+					loaderFill.style.width = pct + '%';
+					loaderMeta.textContent = 'The wind gathers… ' + pct + '%';
+				} else if (!statusEl.classList.contains('indeterminate')) {
+					// No reliable byte counts (e.g. streaming): shimmer instead.
+					statusEl.classList.add('indeterminate');
+					loaderMeta.textContent = 'Calling across the canopy…';
 				}
 			},
-		}).then(() => {
-			setStatusMode('hidden');
+		}).then(function () {
+			// Game is running. Fade the loader away to reveal the boot splash.
+			statusEl.classList.add('done');
+			setTimeout(function () {
+				statusEl.remove();
+			}, 800);
 		}, displayFailureNotice);
 	}
 
 	const missing = Engine.getMissingFeatures({
 		threads: GODOT_THREADS_ENABLED,
 	});
+
+	spawnMotes();
 
 	if (missing.length !== 0) {
 		if (GODOT_CONFIG['serviceWorker'] && GODOT_CONFIG['ensureCrossOriginIsolationHeaders'] && 'serviceWorker' in navigator) {
@@ -237,18 +414,14 @@ const engine = new Engine(GODOT_CONFIG);
 			});
 		} else {
 			// Display the message as usual
-			const missingMsg = 'Error\nThe following features required to run Godot projects on the Web are missing:\n';
+			const missingMsg = 'Error\nThe following features required to run Mythic Monkey Dash on the Web are missing:\n';
 			displayFailureNotice(missingMsg + missing.join('\n'));
 		}
 	} else {
-		// Wait for an explicit tap/click so the browser's AudioContext is created
-		// inside a user gesture. Mobile browsers (Safari/Chrome) keep audio
-		// suspended otherwise and the game stays silent.
-		setStatusMode('start');
-		startButton.addEventListener('click', startGame, { once: true });
+		// No tap-to-start: the game begins as soon as the engine is ready.
+		startGame();
 	}
 }());
 		</script>
 	</body>
 </html>
-
